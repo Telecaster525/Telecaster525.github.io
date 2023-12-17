@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -72,6 +73,7 @@
     </style>
     <title>Визуализация кривой</title>
 </head>
+
 <body>
     <div class="container">
         <h2>Визуализация кривой</h2>
@@ -124,7 +126,7 @@
             const scaleX = parseFloat(document.getElementById('scaleX').value);
 
             drawCurve(ctx, xFunction, yFunction, scaleX, t);
-            drawCircle(ctx, x * scaleX + 250, 250 - y * scaleX, radius * scaleX);
+            drawCircle(ctx, x * scaleX + 250, 250 - y * scaleX, radius*scaleX);
 
             const dx = derivative(xFunction, t);
             const dy = derivative(yFunction, t);
@@ -137,7 +139,7 @@
             drawArrow(ctx, x * scaleX + 250, 250 - y * scaleX, (x + ddx) * scaleX + 250, 250 - (y + ddy) * scaleX, 'orange', 'Acceleration');
         }
 
-        function drawArrow(ctx, startX, startY, endX, endY, color, label) {
+        function drawArrow(ctx, startX, startY, endX, endY, color, label, scaleX) {
             ctx.beginPath();
             ctx.moveTo(startX, startY);
             ctx.lineTo(endX, endY);
@@ -159,6 +161,31 @@
             ctx.fillStyle = color;
             ctx.fillText(label, endX + 10, endY - 5);
         }
+
+        function updateArrows() {
+            const scaleX = parseFloat(document.getElementById('scaleX').value);
+            const t = parseFloat(document.getElementById('parameter').value);
+
+            const dx = derivative(xFunction, t);
+            const dy = derivative(yFunction, t);
+            const ddx = derivative(xFunction, t, 2);
+            const ddy = derivative(yFunction, t, 2);
+
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+
+            const x = xFunction(t);
+            const y = yFunction(t);
+
+            drawArrow(ctx, x * scaleX + 250, 250 - y * scaleX, (x + dx) * scaleX + 250, 250 - (y + dy) * scaleX, 'green', 'Velocity');
+            drawArrow(ctx, x * scaleX + 250, 250 - y * scaleX, (x + ddx) * scaleX + 250, 250 - (y + ddy) * scaleX, 'orange', 'Acceleration');
+        }
+
+        const scaleXInput = document.getElementById('scaleX');
+        scaleXInput.addEventListener('input', () => {
+            updateScales();
+            updateArrows();
+        });
 
         function createFunction(expr) {
             expr = expr.replace(/(\w+)\(/g, 'Math.$1(');
@@ -218,12 +245,12 @@
             ctx.stroke();
         }
 
-        const scaleXInput = document.getElementById('scaleX');
+        const scaleXinput = document.getElementById('scaleX');
 
-        scaleXInput.addEventListener('input', updateScales);
+        scaleXinput.addEventListener('input', updateScales);
 
         function updateScales() {
-            const newScaleX = parseFloat(scaleXInput.value);
+            const newScaleX = parseFloat(scaleXinput.value);
 
             scaleXValue.textContent = newScaleX;
 
@@ -231,4 +258,5 @@
         }
     </script>
 </body>
+
 </html>
