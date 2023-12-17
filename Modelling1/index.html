@@ -66,6 +66,8 @@
             margin-top: 20px;
             border: 1px solid #000;
             border-radius: 5px;
+            max-width: 100%;
+            height: auto;
         }
     </style>
     <title>Визуализация кривой</title>
@@ -76,16 +78,22 @@
 
         <p><i>Работу выполнили: Гаджиев Саид M3215 и Кривуляк Сергей M3215</i></p>
 
-        <label for="functionX"><b>Введите функцию x(t)</b</label>
+        <label for="functionX"><b>Введите функцию x(t)</b></label>
         <input type="text" id="functionX" placeholder="Например t" required>
 
-        <label for="functionY"><b>Введите функцию y(t)</b</label>
+        <label for="functionY"><b>Введите функцию y(t)</b></label>
         <input type="text" id="functionY" placeholder="Например 1/t" required>
 
-        <label for="parameter"><b>Введите параметр t</b</label>
-        <input type="number" id="parameter" placeholder="Например 1,1" step="0.1" required>
+        <label for="parameter"><b>Введите параметр t</b></label>
+        <input type="number" id="parameter" placeholder="Например 1.1" step="0.1" required>
 
         <button onclick="visualize()">Визуализировать</button>
+
+        <br><br>
+        <label for="scaleX"><b>Масштаб:</b></label>
+        <input type="range" id="scaleX" min="0.1" max="400" step="1.1" value="1">
+        <span id="scaleXValue"></span>
+        <br>
 
         <canvas id="canvas" width="500" height="500"></canvas>
     </div>
@@ -113,8 +121,43 @@
             const curvature = calculateCurvature(xFunction, yFunction, t);
             const radius = 1 / curvature;
 
-            drawCurve(ctx, xFunction, yFunction);
-            drawCircle(ctx, x * 50 + 200, 200 - y * 50, radius * 50);
+            const scaleX = parseFloat(document.getElementById('scaleX').value);
+
+            drawCurve(ctx, xFunction, yFunction, scaleX);
+            drawCircle(ctx, x * scaleX + 250, 250 - y * scaleX, radius * scaleX);
+
+            const dx = derivative(xFunction, t);
+            const dy = derivative(yFunction, t);
+            const speed = Math.sqrt(dx * dx + dy * dy);
+            drawArrow(ctx, x * scaleX + 250, 250 - y * scaleX, (x + dx) * scaleX + 250, 250 - (y + dy) * scaleX, 'green', 'Velocity');
+
+            const ddx = derivative(xFunction, t, 2);
+            const ddy = derivative(yFunction, t, 2);
+            const acceleration = Math.sqrt(ddx * ddx + ddy * ddy);
+            drawArrow(ctx, x * scaleX + 250, 250 - y * scaleX, (x + ddx) * scaleX + 250, 250 - (y + ddy) * scaleX, 'orange', 'Acceleration');
+        }
+
+        function drawArrow(ctx, startX, startY, endX, endY, color, label) {
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            const angle = Math.atan2(endY - startY, endX - startX);
+            const arrowSize = 10;
+            ctx.beginPath();
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(endX - arrowSize * Math.cos(angle - Math.PI / 6), endY - arrowSize * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(endX - arrowSize * Math.cos(angle + Math.PI / 6), endY - arrowSize * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+
+            ctx.font = '12px sans-serif';
+            ctx.fillStyle = color;
+            ctx.fillText(label, endX + 10, endY - 5);
         }
 
         function createFunction(expr) {
@@ -147,15 +190,19 @@
             }
         }
 
-        function drawCurve(ctx, xFunction, yFunction) {
+        function drawCurve(ctx, xFunction, yFunction, scaleX) {
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
             ctx.beginPath();
-            ctx.moveTo(xFunction(0) * 50 + 200, 200 - yFunction(0) * 50);
 
-            for (let i = 0; i <= 2 * Math.PI; i += 0.1) {
+            const startX = xFunction(0) * scaleX + scaleX;
+            const startY = scaleX - yFunction(0) * scaleX;
+
+            ctx.moveTo(startX, startY);
+
+            for (let i = 0; i <= scaleX * Math.PI; i += 0.1) {
                 const xi = xFunction(i);
                 const yi = yFunction(i);
-                ctx.lineTo(xi * 50 + 200, 200 - yi * 50);
+                ctx.lineTo(xi * scaleX + 250, 250 - yi * scaleX);
             }
 
             ctx.strokeStyle = 'blue';
@@ -169,6 +216,18 @@
             ctx.strokeStyle = 'red';
             ctx.lineWidth = 2;
             ctx.stroke();
+        }
+
+        const scaleXInput = document.getElementById('scaleX');
+
+        scaleXInput.addEventListener('input', updateScales);
+
+        function updateScales() {
+            const newScaleX = parseFloat(scaleXInput.value);
+
+            scaleXValue.textContent = newScaleX;
+
+            visualize();
         }
     </script>
 </body>
