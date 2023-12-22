@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -77,188 +77,200 @@
     <title>Визуализация кривой</title>
 </head>
 <body>
-    <div class="container">
-        <h2>Визуализация кривой</h2>
+<div class="container">
+    <h2>Визуализация кривой</h2>
 
-        <p><i>Работу выполнили: Гаджиев Саид M3215, Кривуляк Сергей M3215, Хакимов Владислав M3215</i></p>
+    <p><i>Работу выполнили: Гаджиев Саид M3215, Кривуляк Сергей M3215, Хакимов Владислав M3215</i></p>
 
-        <label for="functionX"><b>Введите функцию x(t)</b></label>
-        <input type="text" id="functionX" placeholder="Например: t" required>
+    <label for="functionX"><b>Введите функцию x(t)</b></label>
+    <input type="text" id="functionX" placeholder="Например: t" required>
 
-        <label for="functionY"><b>Введите функцию y(t)</b></label>
-        <input type="text" id="functionY" placeholder="Например: t**2" required>
+    <label for="functionY"><b>Введите функцию y(t)</b></label>
+    <input type="text" id="functionY" placeholder="Например: t**2" required>
 
-        <label for="tRange"><b>Введите диапазон параметра t</b></label>
-        <input type="text" id="tRange" placeholder="Например: -1, 1" required>
+    <label for="tRange"><b>Введите диапазон параметра t</b></label>
+    <input type="text" id="tRange" placeholder="Например: -1, 1" required>
 
-        <label for="pointT"><b>Введите точку t</b></label>
-        <input type="text" id="pointT" placeholder="Например: 1" required>
+    <label for="pointT"><b>Введите точку t</b></label>
+    <input type="text" id="pointT" placeholder="Например: 1" required>
 
-        <button onclick="visualize()">Визуализировать</button>
+    <button onclick="visualize()">Визуализировать</button>
 
-        <div id="plotly-graph"></div>
-        <div id="curvature-output"></div>
-    </div>
+    <div id="plotly-graph"></div>
+    <div id="curvature-output"></div>
+</div>
 
-    <script>
-        function visualize() {
-            const xFunctionStr = document.getElementById('functionX').value;
-            const yFunctionStr = document.getElementById('functionY').value;
-            const pointT = parseFloat(document.getElementById('pointT').value);
+<script>
+    function visualize() {
+        const xFunctionStr = document.getElementById('functionX').value;
+        const yFunctionStr = document.getElementById('functionY').value;
+        const pointT = parseFloat(document.getElementById('pointT').value);
 
-            const xFunction = createFunction(xFunctionStr);
-            const yFunction = createFunction(yFunctionStr);
+        const xFunction = createFunction(xFunctionStr);
+        const yFunction = createFunction(yFunctionStr);
 
-            if (!xFunction || !yFunction) {
-                alert("Invalid function format. Please use valid math expressions like 'sin(t)', 'cos(t)', etc.");
-                return;
-            }
-
-            const curveData = generateCurveData(xFunction, yFunction);
-            const curvature = calculateCurvature(xFunction, yFunction, pointT);
-
-            if (isNaN(curvature)) {
-                alert("Curvature is undefined at the selected point.");
-                return;
-            }
-
-            const radius = 1 / curvature;
-            const circle = generateCircleData(xFunction, yFunction, pointT, radius);
-            const selectedPoint = generateSelectedPointData(xFunction, yFunction, pointT);
-
-            const curvatureText = `Кривизна: ${curvature.toFixed(4)}`;
-            const curvatureAnnotation = {
-                x: selectedPoint[0].x[0],
-                y: selectedPoint[0].y[0],
-                xref: 'x',
-                yref: 'y',
-                text: curvatureText,
-                showarrow: true,
-                arrowhead: 4,
-                ax: 0,
-                ay: -60
-            };
-            const curvatureOutput = document.getElementById('curvature-output');
-            curvatureOutput.textContent = curvatureText;
-
-            plotGraph(curveData, circle, selectedPoint, [curvatureAnnotation]);
+        if (!xFunction || !yFunction) {
+            alert("Invalid function format. Please use valid math expressions like 'sin(t)', 'cos(t)', etc.");
+            return;
         }
 
-        function createFunction(expr) {
-            expr = expr.replace(/(\w+)\(/g, 'Math.$1(');
-            try {
-                return new Function('t', 'return ' + expr);
-            } catch (e) {
-                return null;
-            }
+        const curveData = generateCurveData(xFunction, yFunction);
+        const curvature = calculateCurvature(xFunction, yFunction, pointT);
+
+        if (isNaN(curvature)) {
+            alert("Curvature is undefined at the selected point.");
+            return;
         }
 
-        function generateCurveData(xFunction, yFunction, startT = -Math.PI, endT = Math.PI, step = 0.1) {
-            const data = {
-                x: [],
-                y: [],
-                type: 'scatter',
-                mode: 'lines',
-                line: { color: 'blue' },
-                name: 'Параметрическая функция'
-            };
+        const radius = 1 / curvature;
+        const circle = generateCircleData(xFunction, yFunction, pointT, radius);
+        const selectedPoint = generateSelectedPointData(xFunction, yFunction, pointT);
 
-            for (let t = startT; t <= endT; t += step) {
-                const x = xFunction(t);
-                const y = yFunction(t);
-                data.x.push(x);
-                data.y.push(y);
-            }
 
-            return [data];
+        const curvatureText = `Кривизна: ${curvature.toFixed(4)}`;
+        const curvatureAnnotation = {
+            x: selectedPoint[0].x[0],
+            y: selectedPoint[0].y[0],
+            xref: 'x',
+            yref: 'y',
+            text: curvatureText,
+            showarrow: true,
+            arrowhead: 4,
+            ax: 0,
+            ay: -60
+        };
+        const curvatureOutput = document.getElementById('curvature-output');
+        curvatureOutput.textContent = curvatureText;
+
+        plotGraph(curveData, circle, selectedPoint, [curvatureAnnotation]);
+    }
+
+    function createFunction(expr) {
+        expr = expr.replace(/(\w+)\(/g, 'Math.$1(');
+        try {
+            return new Function('t', 'return ' + expr);
+        } catch (e) {
+            return null;
         }
+    }
 
-        function calculateCurvature(xFunction, yFunction, t) {
-            const dx = derivative(xFunction, t);
-            const dy = derivative(yFunction, t);
-            const ddx = derivative(xFunction, t, 2);
-            const ddy = derivative(yFunction, t, 2);
+    function generateCurveData(xFunction, yFunction, startT = -Math.PI, endT = Math.PI, step = 0.1) {
+        const data = {
+            x: [],
+            y: [],
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: 'blue' },
+            name: 'Параметрическая функция'
+        };
 
-            const denominator = Math.pow(dx * dx + dy * dy, 1.5);
-
-            if (denominator === 0) {
-                return NaN;
-            }
-
-            const numerator = dx * ddy - dy * ddx;
-
-            return numerator / denominator;
-        }
-
-        function generateCircleData(xFunction, yFunction, t, radius) {
+        for (let t = startT; t <= endT; t += step) {
             const x = xFunction(t);
             const y = yFunction(t);
-
-            const theta = Array.from({ length: 361 }, (_, i) => i / 180 * Math.PI);
-            const circleX = [];
-            const circleY = [];
-            theta.forEach(angle => {
-                const dx = radius * Math.cos(angle);
-                const dy = radius * Math.sin(angle);
-                circleX.push(x + dx);
-                circleY.push(y + dy);
-            });
-
-            const data = {
-                x: circleX,
-                y: circleY,
-                type: 'scatter',
-                mode: 'lines',
-                line: { color: 'red' },
-                name: 'Окружность кривизны'
-            };
-
-            return [data];
+            data.x.push(x);
+            data.y.push(y);
         }
 
-        function generateSelectedPointData(xFunction, yFunction, t) {
-            const x = xFunction(t);
-            const y = yFunction(t);
+        return [data];
+    }
 
-            const data = {
-                x: [x],
-                y: [y],
-                type: 'scatter',
-                mode: 'markers',
-                marker: { size: 8, color: 'red' },
-                name: 'Выбранная точка'
-            };
+    function calculateCurvature(xFunction, yFunction, t) {
+        const dx = derivative(xFunction, t);
+        const dy = derivative(yFunction, t);
+        const ddx = derivative(xFunction, t, 2);
+        const ddy = derivative(yFunction, t, 2);
 
-            return [data];
+        const denominator = Math.pow(dx * dx + dy * dy, 1.5);
+
+        if (denominator === 0) {
+            return NaN;
         }
 
-        function derivative(func, x, order = 1) {
-            const h = 0.0001;
-            if (order === 1) {
-                return (func(x + h) - func(x - h)) / (2 * h);
-            } else if (order === 2) {
-                return (func(x + h) - 2 * func(x) + func(x - h)) / (h * h);
-            }
+        const numerator = dx * ddy - dy * ddx;
+
+        return numerator / denominator;
+    }
+
+    function generateCircleData(xFunction, yFunction, t) {
+        const x = xFunction(t);
+        const y = yFunction(t);
+        const dx = derivative(xFunction, t);
+        const dy = derivative(yFunction, t);
+        const ddx = derivative(xFunction, t, 2);
+        const ddy = derivative(yFunction, t, 2);
+        const curvature = calculateCurvature(xFunction, yFunction, t);
+        const radius = 1 / curvature;
+        const nx = -dy / Math.sqrt(dx * dx + dy * dy);
+        const ny = dx / Math.sqrt(dx * dx + dy * dy);
+        const cx = x - nx / radius;
+        const cy = y - ny / radius;
+
+        const theta = Array.from({ length: 361 }, (_, i) => i / 180 * Math.PI);
+        const circleX = [];
+        const circleY = [];
+        theta.forEach(angle => {
+            const dx = radius * Math.cos(angle);
+            const dy = radius * Math.sin(angle);
+            circleX.push(cx + dx);
+            circleY.push(cy + dy);
+        });
+
+        const data = {
+            x: circleX,
+            y: circleY,
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: 'red' },
+            name: 'Окружность кривизны'
+        };
+
+        return [data];
+    }
+
+    function generateSelectedPointData(xFunction, yFunction, t) {
+        const x = xFunction(t);
+        const y = yFunction(t);
+
+        const data = {
+            x: [x],
+            y: [y],
+            type: 'scatter',
+            mode: 'markers',
+            marker: { size: 8, color: 'red' },
+            name: 'Выбранная точка'
+        };
+
+        return [data];
+    }
+
+    function derivative(func, x, order = 1) {
+        const h = 0.0001;
+        if (order === 1) {
+            return (func(x + h) - func(x - h)) / (2 * h);
+        } else if (order === 2) {
+            return (func(x + h) - 2 * func(x) + func(x - h)) / (h * h);
         }
+    }
+    
 
-        function plotGraph(curveData, circleData, selectedPointData, annotations) {
-            const layout = {
-                title: 'Curve and Curvature Circle Visualization',
-                showlegend: true,
-                xaxis: { title: 'x', scaleanchor: 'y' },
-                yaxis: { title: 'y', scaleanchor: 'x' },
-                aspectratio: { x: 1, y: 1 }
-            };
+    function plotGraph(curveData, circleData, selectedPointData, annotations) {
+        const layout = {
+            title: 'Curve and Curvature Circle Visualization',
+            showlegend: true,
+            xaxis: { title: 'x', scaleanchor: 'y' },
+            yaxis: { title: 'y', scaleanchor: 'x' },
+            aspectratio: { x: 1, y: 1 }
+        };
 
-            layout.legend = {
-                x: 0.7,
-                y: 0.9
-            };
+        layout.legend = {
+            x: 0.7,
+            y: 0.9
+        };
 
-            layout.annotations = annotations;
+        layout.annotations = annotations;
 
-            Plotly.newPlot('plotly-graph', curveData.concat(circleData, selectedPointData), layout);
-        }
-    </script>
+        Plotly.newPlot('plotly-graph', curveData.concat(circleData, selectedPointData), layout);
+    }
+</script>
 </body>
 </html>
