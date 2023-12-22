@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -67,47 +67,38 @@
             margin-top: 20px;
             border: 1px solid #000;
             border-radius: 5px;
-            max-width: 100%;
-            height: auto;
         }
     </style>
     <title>Визуализация кривой</title>
 </head>
-
 <body>
     <div class="container">
         <h2>Визуализация кривой</h2>
 
-        <p><i>Работу выполнили: Гаджиев Саид M3215, Кривуляк Сергей M3215, Хакимов Владислав M3215</i></p>
+        <p><i>Работу выполнили: Гаджиев Саид M3215 и Кривуляк Сергей M3215</i></p>
 
         <label for="functionX"><b>Введите функцию x(t)</b></label>
-        <input type="text" id="functionX" placeholder="Например t" required>
+        <input type="text" id="functionX" placeholder="Например: t" required>
 
         <label for="functionY"><b>Введите функцию y(t)</b></label>
-        <input type="text" id="functionY" placeholder="Например 1/t" required>
+        <input type="text" id="functionY" placeholder="Например: t**2" required>
 
-        <label for="parameter"><b>Введите параметр t</b></label>
-        <input type="number" id="parameter" placeholder="Например 1.1" step="0.1" required>
+        <label for="tRange"><b>Введите диапазон параметра t</b></label>
+        <input type="text" id="tRange" placeholder="Например: -1, 1" required>
+
+        <label for="pointT"><b>Введите точку t</b></label>
+        <input type="text" id="pointT" placeholder="Например: 1" required>
 
         <button onclick="visualize()">Визуализировать</button>
 
-        <br><br>
-        <label for="scaleX"><b>Масштаб:</b></label>
-        <input type="range" id="scaleX" min="0.1" max="400" step="1.1" value="1">
-        <span id="scaleXValue"></span>
-        <br>
-
-        <canvas id="canvas" width="500" height="500"></canvas>
+        <div id="plotly-graph"></div>
     </div>
 
     <script>
         function visualize() {
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-
             const xFunctionStr = document.getElementById('functionX').value;
             const yFunctionStr = document.getElementById('functionY').value;
-            const t = parseFloat(document.getElementById('parameter').value);
+            const pointT = parseFloat(document.getElementById('pointT').value);
 
             const xFunction = createFunction(xFunctionStr);
             const yFunction = createFunction(yFunctionStr);
@@ -117,75 +108,19 @@
                 return;
             }
 
-            const x = xFunction(t);
-            const y = yFunction(t);
+            const curveData = generateCurveData(xFunction, yFunction);
+            const curvature = calculateCurvature(xFunction, yFunction, pointT);
 
-            const curvature = calculateCurvature(xFunction, yFunction, t);
+            if (isNaN(curvature)) {
+                alert("Curvature is undefined at the selected point.");
+                return;
+            }
+
             const radius = 1 / curvature;
+            const circle = generateCircleData(xFunction, yFunction, pointT, radius);
 
-            const scaleX = parseFloat(document.getElementById('scaleX').value);
-
-            drawCurve(ctx, xFunction, yFunction, scaleX, t);
-            drawCircle(ctx, x * scaleX + 250, 250 - y * scaleX, radius*scaleX);
-
-            const dx = derivative(xFunction, t);
-            const dy = derivative(yFunction, t);
-            const speed = Math.sqrt(dx * dx + dy * dy);
-            drawArrow(ctx, x * scaleX + 250, 250 - y * scaleX, (x + dx) * scaleX + 250, 250 - (y + dy) * scaleX, 'green', 'Velocity');
-
-            const ddx = derivative(xFunction, t, 2);
-            const ddy = derivative(yFunction, t, 2);
-            const acceleration = Math.sqrt(ddx * ddx + ddy * ddy);
-            drawArrow(ctx, x * scaleX + 250, 250 - y * scaleX, (x + ddx) * scaleX + 250, 250 - (y + ddy) * scaleX, 'orange', 'Acceleration');
+            plotGraph(curveData, circle);
         }
-
-        function drawArrow(ctx, startX, startY, endX, endY, color, label, scaleX) {
-            ctx.beginPath();
-            ctx.moveTo(startX, startY);
-            ctx.lineTo(endX, endY);
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            const angle = Math.atan2(endY - startY, endX - startX);
-            const arrowSize = 10;
-            ctx.beginPath();
-            ctx.moveTo(endX, endY);
-            ctx.lineTo(endX - arrowSize * Math.cos(angle - Math.PI / 6), endY - arrowSize * Math.sin(angle - Math.PI / 6));
-            ctx.lineTo(endX - arrowSize * Math.cos(angle + Math.PI / 6), endY - arrowSize * Math.sin(angle + Math.PI / 6));
-            ctx.closePath();
-            ctx.fillStyle = color;
-            ctx.fill();
-
-            ctx.font = '12px sans-serif';
-            ctx.fillStyle = color;
-            ctx.fillText(label, endX + 10, endY - 5);
-        }
-
-        function updateArrows() {
-            const scaleX = parseFloat(document.getElementById('scaleX').value);
-            const t = parseFloat(document.getElementById('parameter').value);
-
-            const dx = derivative(xFunction, t);
-            const dy = derivative(yFunction, t);
-            const ddx = derivative(xFunction, t, 2);
-            const ddy = derivative(yFunction, t, 2);
-
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-
-            const x = xFunction(t);
-            const y = yFunction(t);
-
-            drawArrow(ctx, x * scaleX + 250, 250 - y * scaleX, (x + dx) * scaleX + 250, 250 - (y + dy) * scaleX, 'green', 'Velocity');
-            drawArrow(ctx, x * scaleX + 250, 250 - y * scaleX, (x + ddx) * scaleX + 250, 250 - (y + ddy) * scaleX, 'orange', 'Acceleration');
-        }
-
-        const scaleXInput = document.getElementById('scaleX');
-        scaleXInput.addEventListener('input', () => {
-            updateScales();
-            updateArrows();
-        });
 
         function createFunction(expr) {
             expr = expr.replace(/(\w+)\(/g, 'Math.$1(');
@@ -196,16 +131,59 @@
             }
         }
 
+        function generateCurveData(xFunction, yFunction, startT = -Math.PI, endT = Math.PI, step = 0.1) {
+            const data = {
+                x: [],
+                y: [],
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: 'blue' }
+            };
+
+            for (let t = startT; t <= endT; t += step) {
+                const x = xFunction(t);
+                const y = yFunction(t);
+                data.x.push(x);
+                data.y.push(y);
+            }
+
+            return [data];
+        }
+
         function calculateCurvature(xFunction, yFunction, t) {
             const dx = derivative(xFunction, t);
             const dy = derivative(yFunction, t);
             const ddx = derivative(xFunction, t, 2);
             const ddy = derivative(yFunction, t, 2);
 
-            const numerator = dx * ddy - dy * ddx;
             const denominator = Math.pow(dx * dx + dy * dy, 1.5);
 
+            if (denominator === 0) {
+                return NaN;
+            }
+
+            const numerator = dx * ddy - dy * ddx;
+
             return numerator / denominator;
+        }
+
+        function generateCircleData(xFunction, yFunction, t, radius) {
+            const x = xFunction(t);
+            const y = yFunction(t);
+
+            const theta = Array.from({ length: 361 }, (_, i) => i / 180 * Math.PI);
+            const circleX = theta.map(angle => x + radius * Math.cos(angle));
+            const circleY = theta.map(angle => y + radius * Math.sin(angle));
+
+            const data = {
+                x: circleX,
+                y: circleY,
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: 'red' }
+            };
+
+            return [data];
         }
 
         function derivative(func, x, order = 1) {
@@ -217,46 +195,16 @@
             }
         }
 
-        function drawCurve(ctx, xFunction, yFunction, scaleX, t) {
-            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-            ctx.beginPath();
+        function plotGraph(curveData, circleData) {
+            const layout = {
+                title: 'Curve and Curvature Circle Visualization',
+                showlegend: false,
+                xaxis: { title: 'x' },
+                yaxis: { title: 'y' }
+            };
 
-            const startX = xFunction(0) * scaleX + scaleX;
-            const startY = scaleX - yFunction(0) * scaleX;
-
-            ctx.moveTo(startX, startY);
-
-            for (let i = 0; i <= scaleX * t * Math.PI; i += 0.05) {
-                const xi = xFunction(i);
-                const yi = yFunction(i);
-                ctx.lineTo(xi * scaleX + 250, 250 - yi * scaleX);
-            }
-
-            ctx.strokeStyle = 'blue';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
-
-        function drawCircle(ctx, x, y, radius) {
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, 2 * Math.PI);
-            ctx.strokeStyle = 'red';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
-
-        const scaleXinput = document.getElementById('scaleX');
-
-        scaleXinput.addEventListener('input', updateScales);
-
-        function updateScales() {
-            const newScaleX = parseFloat(scaleXinput.value);
-
-            scaleXValue.textContent = newScaleX;
-
-            visualize();
+            Plotly.newPlot('plotly-graph', curveData.concat(circleData), layout);
         }
     </script>
 </body>
-
 </html>
